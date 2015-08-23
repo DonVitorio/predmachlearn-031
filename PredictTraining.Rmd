@@ -1,0 +1,47 @@
+---
+title: "Qualitative Activity Recognition"
+author: "Victor Herrera"
+date: "August 23, 2015"
+output: 
+  html_document: 
+    keep_md: yes
+---
+##Data load and clean
+
+The training data for this project are pml-training.csv available here: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv and the test data are pml-testing.csv available here: https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv. The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+
+```{r}
+library(caret)
+library(randomForest)
+traindf <- read.csv(file = "pml-training.csv", header = TRUE)
+selfeat <- read.csv(file = "sel.csv", header = TRUE)
+selfeat$feat
+```
+
+##Training model
+```{r}
+featseldf <- traindf[traindf$new_window=="no", selfeat$feat]
+trainIndex <- createDataPartition(featseldf$classe, p= .5, list = FALSE)
+trainData <- featseldf[trainIndex,]
+testData <- featseldf[-trainIndex,]
+rf1 <- randomForest(classe ~., trainData, ntree = 25)
+rf1
+```
+
+##Prediction
+```{r}
+topredictdf <- read.csv(file = "pml-testing.csv", header = TRUE)
+res <- predict(rf1, newdata = topredictdf)
+res
+```
+## Write Up
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(res)
+```
